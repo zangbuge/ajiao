@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * @Date 2020/1/17
  */
 
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 public @interface Hello {
 
