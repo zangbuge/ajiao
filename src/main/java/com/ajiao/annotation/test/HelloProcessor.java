@@ -1,5 +1,6 @@
 package com.ajiao.annotation.test;
 
+import com.alibaba.fastjson.JSON;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -8,6 +9,7 @@ import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -47,11 +49,18 @@ public class HelloProcessor extends AbstractProcessor {
                 StringBuilder sb = new StringBuilder();
                 // 被注解对象的类型
                 ElementKind kind = element.getKind();
-                sb.append("kind: " + kind);
+                sb.append(" kind: " + kind);
                 // getQualifiedName()包全路径
                 PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
                 Name qualifiedName = packageElement.getQualifiedName();
-                sb.append("qualifiedName: " + qualifiedName);
+                sb.append(" qualifiedName: " + qualifiedName);
+
+                Name simpleName = element.getSimpleName();
+                sb.append(" simpleName: " + simpleName);
+
+                List<? extends Element> enclosedElements = element.getEnclosedElements();
+                String s = JSON.toJSONString(enclosedElements);
+                sb.append(" enclosedElements: " + s);
                 //获取注解元数据
                 Hello hello = element.getAnnotation(Hello.class);
 

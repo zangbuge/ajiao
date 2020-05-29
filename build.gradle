@@ -30,4 +30,6 @@ dependencies {
     compile group: 'com.squareup', name: 'javawriter', version: '2.5.1'
     compile group: 'com.squareup', name: 'javapoet', version: '1.9.0'
     implementation 'com.google.auto.service:auto-service:1.0-rc6'
+    compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'
+
 }
