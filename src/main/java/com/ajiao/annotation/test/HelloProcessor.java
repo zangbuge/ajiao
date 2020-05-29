@@ -24,7 +24,7 @@ public class HelloProcessor extends AbstractProcessor {
     private Messager mMessager;
 
     private static final String HELLO_TEMPLATE =
-            "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s\");\n  }\n}\n";
+            "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s%4$s\");\n  }\n}\n";
 
 
     @Override
@@ -44,35 +44,27 @@ public class HelloProcessor extends AbstractProcessor {
             try (Writer sw = filer.createSourceFile(typeName + "Hello").openWriter()) {
                 log("Generating " + typeName + "Hello source code");
                 note("Generating " + typeName + "Hello source code");
+                StringBuilder sb = new StringBuilder();
+                // 被注解对象的类型
+                ElementKind kind = element.getKind();
+                sb.append("kind: " + kind);
+                //1.包名
+                PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
+                String packagePath = packageElement.getSimpleName().toString();
+                sb.append("\n packagePath: " + packagePath);
+                Name qualifiedName = packageElement.getQualifiedName();
+                sb.append("\n qualifiedName: " + qualifiedName);
+                //获取注解元数据
+                Hello hello = element.getAnnotation(Hello.class);
+
+                //编译期间在Gradle console可查看打印信息
+                note(sb.toString());
                 int lastIndex = typeName.lastIndexOf('.');
-                sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName));
+                sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName, sb.toString()));
             } catch (IOException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }
 
-            /*StringBuilder sb = new StringBuilder();
-            // 被注解对象的类型
-            ElementKind kind = element.getKind();
-            sb.append("kind: " + kind);
-            //1.包名
-            PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
-            String packagePath = packageElement.getSimpleName().toString();
-            sb.append("\n packagePath: " + packagePath);
-            Name qualifiedName = packageElement.getQualifiedName();
-            sb.append("\n qualifiedName: " + qualifiedName);
-
-            VariableElement bindViewElement = (VariableElement) element;
-            //注解变量名
-            String bindViewFiledName = bindViewElement.getSimpleName().toString();
-            sb.append("\n bindViewFiledName: " + bindViewFiledName);
-            //注解的变量类型
-            String bindViewFiledClassType = bindViewElement.asType().toString();
-            sb.append("\n bindViewFiledClassType: " + bindViewFiledClassType);
-            //获取注解元数据
-            Hello hello = element.getAnnotation(Hello.class);
-
-            //编译期间在Gradle console可查看打印信息
-            note(sb.toString());*/
 
         }
         return true;
