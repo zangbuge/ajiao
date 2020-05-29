@@ -1,9 +1,23 @@
+buildscript {
+    ext {
+        UTF_8 = "UTF-8"
+        JDK_V = 1.8
+    }
+}
+
 group 'hugmount'
 version '0.0.1-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'idea'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JDK_V
+tasks.withType(JavaCompile) {
+    options.encoding = UTF_8
+}
+tasks.withType(Javadoc) {
+    options.encoding = UTF_8
+}
 
 repositories {
     mavenLocal()
