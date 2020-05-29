@@ -43,13 +43,14 @@ public class HelloProcessor extends AbstractProcessor {
             Filer filer = processingEnv.getFiler();
             try (Writer sw = filer.createSourceFile(typeName + "Hello").openWriter()) {
                 log("Generating " + typeName + "Hello source code");
+                note("Generating " + typeName + "Hello source code");
                 int lastIndex = typeName.lastIndexOf('.');
                 sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName));
             } catch (IOException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }
 
-            StringBuilder sb = new StringBuilder();
+            /*StringBuilder sb = new StringBuilder();
             // 被注解对象的类型
             ElementKind kind = element.getKind();
             sb.append("kind: " + kind);
@@ -59,10 +60,6 @@ public class HelloProcessor extends AbstractProcessor {
             sb.append("\n packagePath: " + packagePath);
             Name qualifiedName = packageElement.getQualifiedName();
             sb.append("\n qualifiedName: " + qualifiedName);
-            //包装类类型
-            TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-            String enclosingName = enclosingElement.getQualifiedName().toString();
-            sb.append("\n enclosingName: " + enclosingName);
 
             VariableElement bindViewElement = (VariableElement) element;
             //注解变量名
@@ -75,7 +72,7 @@ public class HelloProcessor extends AbstractProcessor {
             Hello hello = element.getAnnotation(Hello.class);
 
             //编译期间在Gradle console可查看打印信息
-            note(sb.toString());
+            note(sb.toString());*/
 
         }
         return true;
@@ -86,9 +83,7 @@ public class HelloProcessor extends AbstractProcessor {
     }
 
     private void log(String msg) {
-        if (processingEnv.getOptions().containsKey("debug")) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg);
-        }
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg);
     }
 
 }
