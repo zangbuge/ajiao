@@ -24,7 +24,7 @@ public class HelloProcessor extends AbstractProcessor {
     private Messager mMessager;
 
     private static final String HELLO_TEMPLATE =
-            "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s%4$s\");\n  }\n}\n";
+            "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s %4$s\");\n  }\n}\n";
 
 
     @Override
@@ -48,12 +48,10 @@ public class HelloProcessor extends AbstractProcessor {
                 // 被注解对象的类型
                 ElementKind kind = element.getKind();
                 sb.append("kind: " + kind);
-                //1.包名
+                // getQualifiedName()包全路径
                 PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
-                String packagePath = packageElement.getSimpleName().toString();
-                sb.append("\n packagePath: " + packagePath);
                 Name qualifiedName = packageElement.getQualifiedName();
-                sb.append("\n qualifiedName: " + qualifiedName);
+                sb.append("qualifiedName: " + qualifiedName);
                 //获取注解元数据
                 Hello hello = element.getAnnotation(Hello.class);
 
