@@ -11,10 +11,11 @@ import java.lang.annotation.Target;
  * @Date 2020/1/17
  */
 
-@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
+@Retention(RetentionPolicy.SOURCE)
 public @interface Hello {
 
-    String value();
+    // 生成接口类名
+    String name() default "";
 
 }

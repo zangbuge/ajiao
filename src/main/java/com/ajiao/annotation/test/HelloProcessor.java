@@ -4,11 +4,7 @@ import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.Elements;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.Writer;
@@ -26,8 +22,6 @@ public class HelloProcessor extends AbstractProcessor {
 
     private Filer mFiler;
     private Messager mMessager;
-    private Elements mElementUtils;
-
 
     private static final String HELLO_TEMPLATE =
             "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s\");\n  }\n}\n";
@@ -38,7 +32,6 @@ public class HelloProcessor extends AbstractProcessor {
         super.init(processingEnvironment);
         mFiler = processingEnvironment.getFiler();
         mMessager = processingEnvironment.getMessager();
-        mElementUtils = processingEnvironment.getElementUtils();
     }
 
 
@@ -56,33 +49,31 @@ public class HelloProcessor extends AbstractProcessor {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }
 
+            StringBuilder sb = new StringBuilder();
+            // 被注解对象的类型
+            ElementKind kind = element.getKind();
+            sb.append("kind: " + kind);
             //1.包名
-            PackageElement packageElement = mElementUtils.getPackageOf(element);
-            String pkName = packageElement.getQualifiedName().toString();
-
+            PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
+            String packagePath = packageElement.getSimpleName().toString();
+            sb.append("\n packagePath: " + packagePath);
+            Name qualifiedName = packageElement.getQualifiedName();
+            sb.append("\n qualifiedName: " + qualifiedName);
             //包装类类型
             TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
             String enclosingName = enclosingElement.getQualifiedName().toString();
+            sb.append("\n enclosingName: " + enclosingName);
 
             VariableElement bindViewElement = (VariableElement) element;
-
             //注解变量名
             String bindViewFiledName = bindViewElement.getSimpleName().toString();
-
+            sb.append("\n bindViewFiledName: " + bindViewFiledName);
             //注解的变量类型
             String bindViewFiledClassType = bindViewElement.asType().toString();
-
+            sb.append("\n bindViewFiledClassType: " + bindViewFiledClassType);
             //获取注解元数据
             Hello hello = element.getAnnotation(Hello.class);
 
-            StringBuilder sb = new StringBuilder();
-            String value = hello.value();
-            sb.append(bindViewFiledClassType);
-            sb.append("___");
-            sb.append(bindViewFiledName);
-            sb.append("___");
-            sb.append(value);
-            sb.append("|||||");
             //编译期间在Gradle console可查看打印信息
             note(sb.toString());
 
