@@ -1,7 +1,9 @@
 package com.ajiao.annotation.test;
 
-import com.alibaba.fastjson.JSON;
 import com.google.auto.service.AutoService;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -9,7 +11,6 @@ import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -58,16 +59,34 @@ public class HelloProcessor extends AbstractProcessor {
                 Name simpleName = element.getSimpleName();
                 sb.append(" simpleName: " + simpleName);
 
-                List<? extends Element> enclosedElements = element.getEnclosedElements();
-                String s = JSON.toJSONString(enclosedElements);
-                sb.append(" enclosedElements: " + s);
                 //获取注解元数据
                 Hello hello = element.getAnnotation(Hello.class);
 
                 //编译期间在Gradle console可查看打印信息
                 note(sb.toString());
                 int lastIndex = typeName.lastIndexOf('.');
-                sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName, sb.toString()));
+//                sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName, sb.toString()));
+
+                // 创建main方法
+                MethodSpec main = MethodSpec.methodBuilder("main")//
+                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)//
+                        .returns(void.class)//
+                        .addParameter(String[].class, "args")//
+                        .addStatement("$T.out.println($S)", System.class, "自动创建的")//
+                        .build();
+
+                // 创建HelloWorld类
+                TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")//
+                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)//
+                        .addMethod(main)//
+                        .build();
+
+                String packageName = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
+                JavaFile javaFile = JavaFile.builder(packageName, helloWorld)//
+                        .addFileComment(" This codes are generated automatically. Do not modify!")//
+                        .build();
+                javaFile.writeTo(filer);
+
             } catch (IOException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }
