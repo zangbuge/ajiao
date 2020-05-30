@@ -8,7 +8,9 @@ import com.squareup.javapoet.TypeSpec;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -65,6 +67,40 @@ public class HelloProcessor extends AbstractProcessor {
             //获取注解元数据
             Hello hello = element.getAnnotation(Hello.class);
 
+            List<? extends Element> enclosedElements = element.getEnclosedElements();
+            for (Element item : enclosedElements) {
+                if (ElementKind.METHOD == item.getKind()) {
+                    ExecutableElement executableElement = (ExecutableElement) item;
+                    List<? extends VariableElement> parameters = executableElement.getParameters();
+                    TypeMirror returnType = executableElement.getReturnType();
+                    Set<Modifier> modifiers = executableElement.getModifiers();
+                    // 修饰符
+                    for (Modifier modifier : modifiers) {
+                        String s = modifier.name().toString();
+                        sb.append(s).append(" ");
+                    }
+                    // 返回值
+                    sb.append(returnType.toString()).append(" ");
+
+                    // 方法名
+                    String s = executableElement.getSimpleName().toString();
+                    sb.append(s).append(" ");
+
+                    // 参数
+                    for (VariableElement variableElement : parameters) {
+                        Element enclosingElement = variableElement.getEnclosingElement();
+
+                        // 参数类型(全路径类型)
+                        String name = enclosingElement.asType().toString();
+                        sb.append(name).append(" ");
+
+                        // 参数变量名
+                        Name simpleName1 = variableElement.getSimpleName();
+                        sb.append(simpleName1.toString()).append(" ");
+                    }
+                }
+                sb.append("    ");
+            }
             // 创建main方法
             MethodSpec main = MethodSpec.methodBuilder("main")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
