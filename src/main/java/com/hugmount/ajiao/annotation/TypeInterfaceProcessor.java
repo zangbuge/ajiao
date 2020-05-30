@@ -133,6 +133,9 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
                     simpleName = "I" + simpleName;
                 }
             }
+            else {
+                simpleName = annotationName;
+            }
             // 创建接口类
             TypeSpec typeSpec = TypeSpec.interfaceBuilder(simpleName)
                     .addModifiers(Modifier.PUBLIC)
