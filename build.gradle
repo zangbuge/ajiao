@@ -5,11 +5,12 @@ buildscript {
     }
 }
 
-group 'hugmount'
+group 'com.hugmount'
 version '0.0.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = JDK_V
 tasks.withType(JavaCompile) {
@@ -32,4 +33,15 @@ dependencies {
     implementation 'com.google.auto.service:auto-service:1.0-rc6'
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'
 
+}
+
+// 构建脚本里引用了maven的发布插件后, 此时gradle的控制台就会出现publishing选项
+// 先点击 build -> build 再点击 publishToMavenLocal 即可发布到本地maven仓库
+// 发布成功后可以在本地仓库中查找到相应目录中的jar, 默认仓库位置设置C:\Users\Administrator\.m2\settings.xml
+publishing {
+    publications {
+        myPublish(MavenPublication){
+            from components.java
+        }
+    }
 }
