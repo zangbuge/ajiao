@@ -65,63 +65,6 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
             // 类名
             String simpleName = element.getSimpleName().toString();
             sb.append(" 类名 simpleName: " + simpleName);
-
-            List<MethodSpec> methodSpecList = new ArrayList<>();
-            // 被注解类的所有元素
-            List<? extends Element> enclosedElements = element.getEnclosedElements();
-            for (Element item : enclosedElements) {
-                if (ElementKind.METHOD == item.getKind()) {
-                    ExecutableElement executableElement = (ExecutableElement) item;
-                    Set<Modifier> modifiers = executableElement.getModifiers();
-                    TypeMirror returnType = executableElement.getReturnType();
-                    // 修饰符
-                    for (Modifier modifier : modifiers) {
-                        String s = modifier.name().toString();
-                        sb.append(s).append(" ");
-                    }
-                    // 返回值
-                    sb.append(returnType.toString()).append(" ");
-
-                    // 方法名
-                    String methodName = executableElement.getSimpleName().toString();
-                    sb.append(methodName).append(" ");
-
-                    // 参数
-                    List<ParameterSpec> list = new ArrayList<>();
-                    List<? extends VariableElement> parameters = executableElement.getParameters();
-                    for (VariableElement variableElement : parameters) {
-                        Element enclosingElement = variableElement.getEnclosingElement();
-
-                        // 参数类型(全路径类型)
-                        String name = enclosingElement.asType().toString();
-                        sb.append(name).append(" ");
-
-                        // 参数变量名
-                        String variableName = variableElement.getSimpleName().toString();
-                        sb.append(variableName).append(" ");
-
-                        String classPath = enclosingElement.asType().toString();
-                        int index = classPath.lastIndexOf(")");
-                        String subPath = classPath.substring(index + 1);
-
-                        // 构建方法参数列表
-                        ParameterSpec parameter = ParameterSpec.builder(Class.forName(subPath), variableName).build();
-                        list.add(parameter);
-                    }
-
-                    // 创建方法
-                    MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
-                            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                            .returns(Class.forName(returnType.toString()))
-                            .addParameters(list)
-                            .build();
-
-                    // 构建方法列表
-                    methodSpecList.add(methodSpec);
-                }
-                sb.append("    ");
-            }
-
             // 获取注解元数据
             TypeInterface annotation = element.getAnnotation(TypeInterface.class);
             String annotationName = annotation.name();
@@ -139,7 +82,7 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
             // 创建接口类
             TypeSpec typeSpec = TypeSpec.interfaceBuilder(simpleName)
                     .addModifiers(Modifier.PUBLIC)
-                    .addMethods(methodSpecList)
+                    .addMethods(getMethodSpecList(element))
                     .build();
             // 创建包路径
             String packagePath = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
@@ -159,7 +102,7 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
                     .build();
 
             // 创建HelloWorld类
-            TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
+            TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld" + simpleName)
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                     .addMethod(main)
                     .build();
@@ -176,6 +119,55 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
         }
 
+    }
+
+
+    /**
+     * 获取方法列表
+     * @param element
+     * @return
+     */
+    public List<MethodSpec> getMethodSpecList(TypeElement element) throws ClassNotFoundException {
+        List<MethodSpec> methodSpecList = new ArrayList<>();
+        // 被注解类的所有元素
+        List<? extends Element> enclosedElements = element.getEnclosedElements();
+        for (Element item : enclosedElements) {
+            if (ElementKind.METHOD == item.getKind()) {
+                ExecutableElement executableElement = (ExecutableElement) item;
+                // 修饰符
+                Set<Modifier> modifiers = executableElement.getModifiers();
+                // 返回值
+                TypeMirror returnType = executableElement.getReturnType();
+                // 方法名
+                String methodName = executableElement.getSimpleName().toString();
+                // 参数
+                List<ParameterSpec> list = new ArrayList<>();
+                List<? extends VariableElement> parameters = executableElement.getParameters();
+                for (VariableElement variableElement : parameters) {
+                    Element enclosingElement = variableElement.getEnclosingElement();
+                    // 参数类型(全路径类型)
+                    String classPath = enclosingElement.asType().toString();
+                    int index = classPath.lastIndexOf(")");
+                    String subPath = classPath.substring(index + 1);
+                    // 参数变量名
+                    String variableName = variableElement.getSimpleName().toString();
+                    // 构建方法参数列表
+                    ParameterSpec parameter = ParameterSpec.builder(Class.forName(subPath), variableName).build();
+                    list.add(parameter);
+                }
+
+                // 创建方法
+                MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .returns(Class.forName(returnType.toString()))
+                        .addParameters(list)
+                        .build();
+
+                // 构建方法列表
+                methodSpecList.add(methodSpec);
+            }
+        }
+        return methodSpecList;
     }
 
 
