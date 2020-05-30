@@ -9,99 +9,89 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Set;
 
 /**
  * @Author Li Huiming
  * @Date 2020/1/17
  */
-
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes("com.ajiao.annotation.test.Hello")
 @AutoService(Processor.class)
 public class HelloProcessor extends AbstractProcessor {
 
-    private Filer mFiler;
-    private Messager mMessager;
-
-    private static final String HELLO_TEMPLATE =
-            "package %1$s;\n\npublic class %2$sHello {\n  public static void sayHello() {\n    System.out.println(\"Hello %3$s %4$s\");\n  }\n}\n";
-
+    private Messager messager;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
-        mFiler = processingEnvironment.getFiler();
-        mMessager = processingEnvironment.getMessager();
+        messager = processingEnvironment.getMessager();
     }
 
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
+        // 获取所有被注解类(元素)
         for (Element element : roundEnvironment.getElementsAnnotatedWith(Hello.class)) {
-            TypeElement typeElem = (TypeElement) element;
-            String typeName = typeElem.getQualifiedName().toString();
-            Filer filer = processingEnv.getFiler();
-            try (Writer sw = filer.createSourceFile(typeName + "Hello").openWriter()) {
-                log("Generating " + typeName + "Hello source code");
-                note("Generating " + typeName + "Hello source code");
-                StringBuilder sb = new StringBuilder();
-                // 被注解对象的类型
-                ElementKind kind = element.getKind();
-                sb.append(" kind: " + kind);
-                // getQualifiedName()包全路径
-                PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
-                Name qualifiedName = packageElement.getQualifiedName();
-                sb.append(" qualifiedName: " + qualifiedName);
-
-                Name simpleName = element.getSimpleName();
-                sb.append(" simpleName: " + simpleName);
-
-                //获取注解元数据
-                Hello hello = element.getAnnotation(Hello.class);
-
-                //编译期间在Gradle console可查看打印信息
-                note(sb.toString());
-                int lastIndex = typeName.lastIndexOf('.');
-//                sw.write(String.format(HELLO_TEMPLATE, typeName.substring(0, lastIndex), typeName.substring(lastIndex + 1), typeName, sb.toString()));
-
-                // 创建main方法
-                MethodSpec main = MethodSpec.methodBuilder("main")//
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)//
-                        .returns(void.class)//
-                        .addParameter(String[].class, "args")//
-                        .addStatement("$T.out.println($S)", System.class, "自动创建的")//
-                        .build();
-
-                // 创建HelloWorld类
-                TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")//
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)//
-                        .addMethod(main)//
-                        .build();
-
-                String packageName = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
-                JavaFile javaFile = JavaFile.builder(packageName, helloWorld)//
-                        .addFileComment(" This codes are generated automatically. Do not modify!")//
-                        .build();
-                javaFile.writeTo(filer);
-
-            } catch (IOException e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+            // 被注解对象的类型
+            ElementKind kind = element.getKind();
+            if (ElementKind.CLASS == kind) {
+                TypeElement typeElem = (TypeElement) element;
+                dealTypeElement(typeElem);
             }
-
-
         }
+        // 返回true ,表示已处理, 不会被其他注解处理器处理
         return true;
     }
 
-    private void note(String msg) {
-        mMessager.printMessage(Diagnostic.Kind.NOTE, msg);
+
+    /**
+     * 处理被注解类
+     *
+     * @param element
+     */
+    public void dealTypeElement(TypeElement element) {
+        Filer filer = processingEnv.getFiler();
+        try {
+            StringBuilder sb = new StringBuilder();
+            // getQualifiedName() 包全路径
+            PackageElement packageElement = processingEnv.getElementUtils().getPackageOf(element);
+            String qualifiedName = packageElement.getQualifiedName().toString();
+            sb.append(" 包全路径 qualifiedName: " + qualifiedName);
+            // 类名
+            Name simpleName = element.getSimpleName();
+            sb.append(" 类名 simpleName: " + simpleName);
+
+            //获取注解元数据
+            Hello hello = element.getAnnotation(Hello.class);
+
+            // 创建main方法
+            MethodSpec main = MethodSpec.methodBuilder("main")
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .returns(void.class)
+                    .addParameter(String[].class, "args")
+                    .addStatement("$T.out.println($S)", System.class, "自动创建的" + sb.toString())
+                    .build();
+
+            // 创建HelloWorld类
+            TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
+                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                    .addMethod(main)
+                    .build();
+
+            String packageName = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
+            JavaFile javaFile = JavaFile.builder(packageName, helloWorld)
+                    .addFileComment(" This codes are generated automatically. Do not modify!")
+                    .build();
+
+            javaFile.writeTo(filer);
+
+        } catch (Exception e) {
+            // 打印
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+        }
+
     }
 
-    private void log(String msg) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg);
-    }
 
 }
