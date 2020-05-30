@@ -1,4 +1,4 @@
-package com.ajiao.util;
+package com.hugmount.ajiao.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

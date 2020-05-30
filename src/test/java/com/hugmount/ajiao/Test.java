@@ -1,4 +1,4 @@
-package com;
+package com.hugmount.ajiao;
 
 /**
  * @Author Li Huiming

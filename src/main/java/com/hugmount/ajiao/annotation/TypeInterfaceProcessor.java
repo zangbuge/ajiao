@@ -1,4 +1,4 @@
-package com.ajiao.annotation.test;
+package com.hugmount.ajiao.annotation;
 
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
@@ -15,14 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
+/** 实现了自动生成接口
  * @Author Li Huiming
  * @Date 2020/1/17
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes("com.ajiao.annotation.test.Hello")
+@SupportedAnnotationTypes("com.hugmount.ajiao.annotation.TypeInterface")
 @AutoService(Processor.class)
-public class HelloProcessor extends AbstractProcessor {
+public class TypeInterfaceProcessor extends AbstractProcessor {
 
     private Messager messager;
 
@@ -35,8 +35,8 @@ public class HelloProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        // 获取所有被注解类(元素)
-        for (Element element : roundEnvironment.getElementsAnnotatedWith(Hello.class)) {
+        // 获取所有被注解的类
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(TypeInterface.class)) {
             // 被注解对象的类型
             ElementKind kind = element.getKind();
             if (ElementKind.CLASS == kind) {
@@ -44,7 +44,7 @@ public class HelloProcessor extends AbstractProcessor {
                 dealTypeElement(typeElem);
             }
         }
-        // 返回true ,表示已处理, 不会被其他注解处理器处理
+        // 返回true ,表示已处理, 将不再会被其他注解处理器处理
         return true;
     }
 
@@ -63,19 +63,17 @@ public class HelloProcessor extends AbstractProcessor {
             String qualifiedName = packageElement.getQualifiedName().toString();
             sb.append(" 包全路径 qualifiedName: " + qualifiedName);
             // 类名
-            Name simpleName = element.getSimpleName();
+            String simpleName = element.getSimpleName().toString();
             sb.append(" 类名 simpleName: " + simpleName);
-            //获取注解元数据
-            Hello hello = element.getAnnotation(Hello.class);
 
             List<MethodSpec> methodSpecList = new ArrayList<>();
+            // 被注解类的所有元素
             List<? extends Element> enclosedElements = element.getEnclosedElements();
             for (Element item : enclosedElements) {
                 if (ElementKind.METHOD == item.getKind()) {
                     ExecutableElement executableElement = (ExecutableElement) item;
-                    List<? extends VariableElement> parameters = executableElement.getParameters();
-                    TypeMirror returnType = executableElement.getReturnType();
                     Set<Modifier> modifiers = executableElement.getModifiers();
+                    TypeMirror returnType = executableElement.getReturnType();
                     // 修饰符
                     for (Modifier modifier : modifiers) {
                         String s = modifier.name().toString();
@@ -88,8 +86,9 @@ public class HelloProcessor extends AbstractProcessor {
                     String methodName = executableElement.getSimpleName().toString();
                     sb.append(methodName).append(" ");
 
-                    List<ParameterSpec> list = new ArrayList<>();
                     // 参数
+                    List<ParameterSpec> list = new ArrayList<>();
+                    List<? extends VariableElement> parameters = executableElement.getParameters();
                     for (VariableElement variableElement : parameters) {
                         Element enclosingElement = variableElement.getEnclosingElement();
 
@@ -98,15 +97,16 @@ public class HelloProcessor extends AbstractProcessor {
                         sb.append(name).append(" ");
 
                         // 参数变量名
-                        String simpleName1 = variableElement.getSimpleName().toString();
-                        sb.append(simpleName1).append(" ");
+                        String variableName = variableElement.getSimpleName().toString();
+                        sb.append(variableName).append(" ");
 
                         String classPath = enclosingElement.asType().toString();
                         int index = classPath.lastIndexOf(")");
                         String subPath = classPath.substring(index + 1);
-                        ParameterSpec parameterSpec = ParameterSpec.builder(Class.forName(subPath), simpleName1).build();
-                        list.add(parameterSpec);
 
+                        // 构建方法参数列表
+                        ParameterSpec parameter = ParameterSpec.builder(Class.forName(subPath), variableName).build();
+                        list.add(parameter);
                     }
 
                     // 创建方法
@@ -116,20 +116,34 @@ public class HelloProcessor extends AbstractProcessor {
                             .addParameters(list)
                             .build();
 
+                    // 构建方法列表
                     methodSpecList.add(methodSpec);
                 }
                 sb.append("    ");
             }
-            // 创建IHelloWorld类
-            TypeSpec iHelloWorld = TypeSpec.interfaceBuilder("IHelloWorld")
+
+            // 获取注解元数据
+            TypeInterface annotation = element.getAnnotation(TypeInterface.class);
+            String annotationName = annotation.name();
+            if (null == annotationName || "".equals(annotationName.trim())) {
+                if (simpleName.indexOf("Impl") > 0) {
+                    simpleName = simpleName.replace("Impl","");
+                }
+                else {
+                    simpleName = "I" + simpleName;
+                }
+            }
+            // 创建接口类
+            TypeSpec typeSpec = TypeSpec.interfaceBuilder(simpleName)
                     .addModifiers(Modifier.PUBLIC)
                     .addMethods(methodSpecList)
                     .build();
-
-            String packageName1 = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
-            JavaFile javaFile1 = JavaFile.builder(packageName1, iHelloWorld)
+            // 创建包路径
+            String packagePath = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
+            JavaFile javaFile1 = JavaFile.builder(packagePath, typeSpec)
                     .addFileComment(" This codes are generated automatically. Do not modify!")
                     .build();
+            // 写入文件
             javaFile1.writeTo(filer);
 
             // ----------------------demo----------------------
