@@ -3,6 +3,7 @@ package com.ajiao.annotation.test;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 
 import javax.annotation.processing.*;
@@ -10,6 +11,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -63,10 +65,10 @@ public class HelloProcessor extends AbstractProcessor {
             // 类名
             Name simpleName = element.getSimpleName();
             sb.append(" 类名 simpleName: " + simpleName);
-
             //获取注解元数据
             Hello hello = element.getAnnotation(Hello.class);
 
+            List<MethodSpec> methodSpecList = new ArrayList<>();
             List<? extends Element> enclosedElements = element.getEnclosedElements();
             for (Element item : enclosedElements) {
                 if (ElementKind.METHOD == item.getKind()) {
@@ -83,9 +85,10 @@ public class HelloProcessor extends AbstractProcessor {
                     sb.append(returnType.toString()).append(" ");
 
                     // 方法名
-                    String s = executableElement.getSimpleName().toString();
-                    sb.append(s).append(" ");
+                    String methodName = executableElement.getSimpleName().toString();
+                    sb.append(methodName).append(" ");
 
+                    List<ParameterSpec> list = new ArrayList<>();
                     // 参数
                     for (VariableElement variableElement : parameters) {
                         Element enclosingElement = variableElement.getEnclosingElement();
@@ -95,12 +98,41 @@ public class HelloProcessor extends AbstractProcessor {
                         sb.append(name).append(" ");
 
                         // 参数变量名
-                        Name simpleName1 = variableElement.getSimpleName();
-                        sb.append(simpleName1.toString()).append(" ");
+                        String simpleName1 = variableElement.getSimpleName().toString();
+                        sb.append(simpleName1).append(" ");
+
+                        String classPath = enclosingElement.asType().toString();
+                        int index = classPath.lastIndexOf(")");
+                        String subPath = classPath.substring(index + 1);
+                        ParameterSpec parameterSpec = ParameterSpec.builder(Class.forName(subPath), simpleName1).build();
+                        list.add(parameterSpec);
+
                     }
+
+                    // 创建方法
+                    MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
+                            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                            .returns(Class.forName(returnType.toString()))
+                            .addParameters(list)
+                            .build();
+
+                    methodSpecList.add(methodSpec);
                 }
                 sb.append("    ");
             }
+            // 创建IHelloWorld类
+            TypeSpec iHelloWorld = TypeSpec.interfaceBuilder("IHelloWorld")
+                    .addModifiers(Modifier.PUBLIC)
+                    .addMethods(methodSpecList)
+                    .build();
+
+            String packageName1 = processingEnv.getElementUtils().getPackageOf(element).getQualifiedName().toString();
+            JavaFile javaFile1 = JavaFile.builder(packageName1, iHelloWorld)
+                    .addFileComment(" This codes are generated automatically. Do not modify!")
+                    .build();
+            javaFile1.writeTo(filer);
+
+            // ----------------------demo----------------------
             // 创建main方法
             MethodSpec main = MethodSpec.methodBuilder("main")
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
