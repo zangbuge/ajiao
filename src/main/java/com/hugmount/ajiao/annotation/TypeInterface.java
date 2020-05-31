@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @Date 2020/1/17
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 public @interface TypeInterface {
 
     // 生成接口类名
