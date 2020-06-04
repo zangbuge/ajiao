@@ -1,10 +1,12 @@
 package com.hugmount.ajiao.annotation;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
+import com.sun.tools.javac.model.JavacElements;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Context;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -55,6 +57,10 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
      * @param element
      */
     public void dealTypeElement(TypeElement element) {
+        final Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
+        final TreeMaker treeMaker = TreeMaker.instance(context);
+        final JavacElements elementUtils = (JavacElements) processingEnv.getElementUtils();
+
         Filer filer = processingEnv.getFiler();
         try {
             StringBuilder sb = new StringBuilder();
@@ -91,6 +97,12 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
                     .build();
             // 写入文件
             javaFile1.writeTo(filer);
+
+            // 修改原始class, 添加实现接口
+            String iName = packagePath + "." + simpleName;
+            JCTree.JCClassDecl jcClassDecl = (JCTree.JCClassDecl) elementUtils.getTree(element);
+//            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement("com.hugmount.helloboot.core.annotation.IHello")));
+            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement(iName)));
 
             // ----------------------demo----------------------
             // 创建main方法
