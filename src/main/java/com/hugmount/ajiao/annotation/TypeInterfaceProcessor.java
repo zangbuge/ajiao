@@ -99,10 +99,10 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
             javaFile1.writeTo(filer);
 
             // 修改原始class, 添加实现接口
-            String iName = packagePath + "." + simpleName;
-            JCTree.JCClassDecl jcClassDecl = (JCTree.JCClassDecl) elementUtils.getTree(element);
-//            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement("com.hugmount.helloboot.core.annotation.IHello")));
-            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement(iName)));
+//            String iName = packagePath + "." + simpleName;
+//            JCTree.JCClassDecl jcClassDecl = (JCTree.JCClassDecl) elementUtils.getTree(element);
+////            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement("com.hugmount.helloboot.core.annotation.IHello")));
+//            jcClassDecl.implementing = com.sun.tools.javac.util.List.of(treeMaker.Ident(elementUtils.getTypeElement(iName)));
 
             // ----------------------demo----------------------
             // 创建main方法
@@ -128,7 +128,7 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
 
         } catch (Exception e) {
             // 打印
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+            messager.printMessage(Diagnostic.Kind.ERROR, "编译错误: " + e);
         }
 
     }
@@ -156,9 +156,8 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
                 List<ParameterSpec> list = new ArrayList<>();
                 List<? extends VariableElement> parameters = executableElement.getParameters();
                 for (VariableElement variableElement : parameters) {
-                    Element enclosingElement = variableElement.getEnclosingElement();
                     // 参数类型(全路径类型)
-                    String classPath = enclosingElement.asType().toString();
+                    String classPath = variableElement.asType().toString();
                     int index = classPath.lastIndexOf(")");
                     String subPath = classPath.substring(index + 1);
                     // 参数变量名
@@ -182,5 +181,27 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
         return methodSpecList;
     }
 
+
+    public Class<?> getClassType(String type) {
+        switch (type) {
+            case "short" : return Short.class;
+            case "byte" : return Byte.class;
+            case "int" : return Integer.class;
+            case "long" : return Long.class;
+            case "float" : return Float.class;
+            case "double" : return Double.class;
+            case "boolean" : return Boolean.class;
+            case "char" : return Character.class;
+            case "void" : return Void.class;
+            default:
+                try {
+                    return Class.forName(type);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+        }
+
+        return null;
+    }
 
 }
