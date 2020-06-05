@@ -163,14 +163,14 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
                     // 参数变量名
                     String variableName = variableElement.getSimpleName().toString();
                     // 构建方法参数列表
-                    ParameterSpec parameter = ParameterSpec.builder(Class.forName(subPath), variableName).build();
+                    ParameterSpec parameter = ParameterSpec.builder(getClassType(subPath), variableName).build();
                     list.add(parameter);
                 }
 
                 // 创建方法
                 MethodSpec methodSpec = MethodSpec.methodBuilder(methodName)
                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                        .returns(Class.forName(returnType.toString()))
+                        .returns(getClassType(returnType.toString()))
                         .addParameters(list)
                         .build();
 
@@ -190,9 +190,9 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
             case "long" : return Long.class;
             case "float" : return Float.class;
             case "double" : return Double.class;
-            case "boolean" : return Boolean.class;
+            case "boolean" : return boolean.class;
             case "char" : return Character.class;
-            case "void" : return Void.class;
+            case "void" : return void.class;
             default:
                 try {
                     return Class.forName(type);
