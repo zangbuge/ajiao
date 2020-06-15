@@ -183,6 +183,17 @@ public class TypeInterfaceProcessor extends AbstractProcessor {
 
 
     public Class<?> getClassType(String type) {
+        // 仅处理了一维数组
+        if (type.contains("[]")) {
+            String substring = type.substring(0, type.indexOf("["));
+            try {
+                //  [  表示一维数组，[[ 二维数组……  L 表示是对象类型 ,右边一定要加分号 ;
+                String name = "[L" + substring + ";";
+                return Class.forName(name);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         switch (type) {
             case "short" : return Short.class;
             case "byte" : return Byte.class;
