@@ -21,7 +21,7 @@ import java.util.Set;
 @SupportedAnnotationTypes("com.hugmount.ajiao.annotation.HelloWorld")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
-public class MyProcessor extends AbstractProcessor {
+public class HelloWorldProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
