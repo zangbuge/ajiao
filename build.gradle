@@ -32,6 +32,8 @@ dependencies {
     compile group: 'com.squareup', name: 'javapoet', version: '1.9.0'
     implementation 'com.google.auto.service:auto-service:1.0-rc6'
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.29'
+
     // 路径相对build.gradle文件的路径
     // compile files('lib/tools.jar') // 单个文件, java8 jdk自带工具类
     compile fileTree(dir: 'src/main/resources/lib', include: [ '*.jar'])
