@@ -58,6 +58,8 @@ public class Slf4jProcessor extends AbstractBaseProcessor {
             JCTree.JCIdent ident = treeMaker.Ident(elementUtils.getTypeElement(Logger.class.getCanonicalName()));
             JCTree jcVariableDecl = treeMaker.VarDef(modifiers, name, ident, apply);
 
+            // 调用Arrays.asList()生产的List的add、remove方法时报异常，这是由Arrays.asList()
+            // 返回的市Arrays的内部类ArrayList， 而不是java.util.ArrayList
             JCTree.JCClassDecl jcClassDecl = (JCTree.JCClassDecl) elementUtils.getTree(element);
             ArrayList<JCTree> arrayList = new ArrayList<>();
             arrayList.add(jcVariableDecl);
