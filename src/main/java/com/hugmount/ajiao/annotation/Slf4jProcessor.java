@@ -45,8 +45,8 @@ public class Slf4jProcessor extends AbstractBaseProcessor {
             Name name = names.fromString(varName);
 
             ArrayList<JCTree.JCExpression> newArgs = new ArrayList<>();
-            String curclazz = typeElement.getQualifiedName().toString() + ".class";
-            JCTree.JCExpression jcExpression = memberAccess(curclazz);
+            String curClazz = typeElement.getQualifiedName().toString() + ".class";
+            JCTree.JCExpression jcExpression = memberAccess(curClazz);
             newArgs.add(jcExpression);
 
             JCTree.JCMethodInvocation apply = treeMaker.Apply(List.nil()
@@ -55,7 +55,7 @@ public class Slf4jProcessor extends AbstractBaseProcessor {
 
             // Flags的值是按二进制设计的 用法示例：treeMaker.Modifiers(Flags.PUBLIC + Flags.STATIC + Flags.FINAL);
             JCTree.JCModifiers modifiers = treeMaker.Modifiers(Flags.PUBLIC + Flags.STATIC + Flags.FINAL);
-            JCTree.JCIdent ident = treeMaker.Ident(elementUtils.getTypeElement(Logger.class.getCanonicalName()));
+            JCTree.JCExpression ident = memberAccess(Logger.class.getCanonicalName());
             JCTree jcVariableDecl = treeMaker.VarDef(modifiers, name, ident, apply);
 
             // 调用Arrays.asList()生产的List的add、remove方法时报异常，这是由Arrays.asList()
