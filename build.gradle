@@ -34,9 +34,12 @@ dependencies {
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.29'
 
+    // 自定义start依赖
+    implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure', version: '2.4.9'
+
     // 路径相对build.gradle文件的路径
     // compile files('lib/tools.jar') // 单个文件, java8 jdk自带工具类
-    compile fileTree(dir: 'src/main/resources/lib', include: [ '*.jar'])
+    compile fileTree(dir: 'src/main/resources/lib', include: ['*.jar'])
 
 }
 
@@ -45,7 +48,7 @@ dependencies {
 // 发布成功后可以在本地仓库中查找到相应目录中的jar, 默认仓库位置设置C:\Users\Administrator\.m2\settings.xml
 publishing {
     publications {
-        myPublish(MavenPublication){
+        myPublish(MavenPublication) {
             from components.java
         }
     }
