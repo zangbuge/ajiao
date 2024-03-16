@@ -44,9 +44,16 @@ dependencies {
 }
 
 // 构建脚本里引用了maven的发布插件后, 此时gradle的控制台就会出现publishing选项
-// 先点击 build -> build 再点击 publishToMavenLocal 即可发布到本地maven仓库
-// 发布成功后可以在本地仓库中查找到相应目录中的jar, 默认仓库位置设置C:\Users\Administrator\.m2\settings.xml
+// 先点击 build -> build 再点击 publishToMavenLocal 即可发布到本地maven仓库,默认C:\Users\Administrator\.m2\settings.xml
+// 点击自定义任务 publishMyPublishPublicationToMavenRepository 是发布到自定义配置的url地址中
+// 发布成功后可以在本地仓库中查找到相应目录中的jar
 publishing {
+    repositories {
+        maven {
+            // 使用自定义目录作为仓库位置,可不指定使用默认
+            url "file://D:/work/tool/maven/maven_repository"
+        }
+    }
     publications {
         myPublish(MavenPublication) {
             from components.java

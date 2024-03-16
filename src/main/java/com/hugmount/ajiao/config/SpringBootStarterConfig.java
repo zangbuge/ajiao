@@ -1,6 +1,5 @@
 package com.hugmount.ajiao.config;
 
-import com.hugmount.ajiao.proxy.JdkProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +13,10 @@ import org.springframework.context.annotation.Configuration;
 public class SpringBootStarterConfig {
 
     @Bean
-    public JdkProxy jdkProxy() {
-        return new JdkProxy();
+    public DemoCfg demoCfg() {
+        DemoCfg cfg = new DemoCfg();
+        cfg.test();
+        return cfg;
     }
 
 }
